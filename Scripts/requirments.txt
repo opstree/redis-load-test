@@ -1,4 +1,3 @@
-locust
-json
+locustio
 argparse
 redis
