@@ -47,7 +47,7 @@ class RedisClient(object):
             events.request_success.fire(request_type=command, name=key, response_time=total_time, response_length=length)
         return result
 
-    def write(self,key,value,command='write'):
+    def write(self, key, value, command='SET'):
         """Function to Test SET operation on Redis"""
         result = None
         start_time = time.time()
@@ -78,11 +78,16 @@ class RedisLua(RedisLocust):
     class task_set(TaskSet):
         @task(2)
         def get_time(self):
-            self.client.query('key1')
+            for i in range(100):
+                self.key='key'+str(i)
+                self.client.query(self.key)
 
         @task(1)
         def write(self):
-            self.client.write(self.key,self.value)
+            for i in range(100):
+                self.key='key'+str(i)
+                self.value='value'+str(i)
+                self.client.write(self.key,self.value)
 
         @task(1)
         def get_key(self):
