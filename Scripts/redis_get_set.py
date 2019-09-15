@@ -4,7 +4,7 @@
 This is a script to Get and Set key in Redis Server for load testing.
 This script will use locust as framework.
 
-Author:- Abhishek Dubey
+Author:- OpsTree Solutions
 """
 
 import json
