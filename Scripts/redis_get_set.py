@@ -27,8 +27,8 @@ filename = "redis.json"
 configs = load_config(filename)
 
 class RedisClient(object):
-    def __init__(self, host=configs["redis_host"], port=configs["redis_port"]):
-        self.rc = redis.StrictRedis(host=host, port=port)
+    def __init__(self, host=configs["redis_host"], port=configs["redis_port"], password=configs["redis_password"]):
+        self.rc = redis.StrictRedis(host=host, port=port, password=password)
     
     def query(self, key, command='GET'):
         """Function to Test GET operation on Redis"""
