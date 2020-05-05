@@ -1,0 +1,31 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-load-test
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: redis-load-test
+  replicas: 1 
+  template: 
+    metadata:
+      labels:
+        app: redis-load-test
+    spec:
+      containers:
+      - env:
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_HOST
+          value: "localhost"
+        - name: REDIS_PW
+          value: "your_redis_auth"
+        name: redis-load-test
+        image: arieslaluces/rlt:latest
+        ports:
+        - containerPort: 80
+
+        
