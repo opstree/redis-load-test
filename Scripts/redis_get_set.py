@@ -29,7 +29,7 @@ configs = load_config(filename)
 
 
 class RedisClient(object):
-    def init(self, host=configs["redis_host"], port=configs["redis_port"], password=configs["redis_password"]):
+    def __init__(self, host=configs["redis_host"], port=configs["redis_port"], password=configs["redis_password"]):
         self.rc = redis.StrictRedis(host=host, port=port, password=password)
 
     def query(self, key, command='GET'):
@@ -75,7 +75,7 @@ class RedisLocust(User):
     wait_time = constant(0.1)
     key_range = 500
 
-    def init(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(RedisLocust, self).init(*args, **kwargs)
         self.client = RedisClient()
         self.key = 'key1'
