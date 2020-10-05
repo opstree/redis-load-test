@@ -76,7 +76,7 @@ class RedisLocust(User):
     key_range = 500
 
     def __init__(self, *args, **kwargs):
-        super(RedisLocust, self).init(*args, **kwargs)
+        super(RedisLocust, self).__init__(*args, **kwargs)
         self.client = RedisClient()
         self.key = 'key1'
         self.value = 'value1'
