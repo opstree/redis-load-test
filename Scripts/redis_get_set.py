@@ -5,6 +5,7 @@ This is a script to Get and Set key in Redis Server for load testing.
 This script will use locust as framework.
 
 Author:- OpsTree Solutions
+Edited by: zviedris
 """
 
 from random import randint
@@ -28,13 +29,14 @@ def randStr(chars = string.ascii_uppercase + string.digits, N=10):
     return ''.join(random.choice(chars) for _ in range(N))
 
 filename = "redis.json"
-
 configs = load_config(filename)
 
 
 class RedisClient(object):
     def __init__(self, host=configs["redis_host"], port=configs["redis_port"], password=configs["redis_password"]):
         self.rc = redis.StrictRedis(host=host, port=port, password=password)
+        self.errorTime = configs["error_timeout"]
+        self.expirationTime = configs["expire_seconds"]
 
     def query(self, key, command='GET'):
         """Function to Test GET operation on Redis"""
@@ -47,12 +49,16 @@ class RedisClient(object):
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
             events.request_failure.fire(
-                request_type=command, name=key, response_time=total_time, exception=e)
+                request_type=command, name="get", response_time=total_time, response_length=1, exception=e)
         else:
             total_time = int((time.time() - start_time) * 1000)
             length = len(result)
-            events.request_success.fire(
-                request_type=command, name=key, response_time=total_time, response_length=length)
+            if self.errorTime > 0 and total_time > self.errorTime:
+                events.request_failure.fire(
+                    request_type=command, name="get", response_time=total_time, response_length=length, exception="timeout exception")            
+            else:
+                events.request_success.fire(
+                    request_type=command, name="get", response_time=total_time, response_length=length)
         return result
 
     def write(self, key, value, command='SET'):
@@ -60,18 +66,26 @@ class RedisClient(object):
         result = None
         start_time = time.time()
         try:
-            result = self.rc.set(key, value)
+            if self.expirationTime > 0:
+                result = self.rc.set(key, value, self.expirationTime)
+            else:
+                result = self.rc.set(key, value)
             if not result:
                 result = ''
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
             events.request_failure.fire(
-                request_type=command, name=key, response_time=total_time, exception=e)
+                request_type=command, name="set", response_time=total_time, response_length=1, exception=e)
         else:
             total_time = int((time.time() - start_time) * 1000)
             length = len(value)
-            events.request_success.fire(
-                request_type=command, name=key, response_time=total_time, response_length=length)
+            #if time is greater than normal timeout - it is registred as timeout
+            if self.errorTime > 0 and total_time > self.errorTime:
+                events.request_failure.fire(
+                    request_type=command, name="set", response_time=total_time, response_length=length, exception="timeout exception")            
+            else:
+                events.request_success.fire(
+                    request_type=command, name="set", response_time=total_time, response_length=length)
         return result
 
 
@@ -86,23 +100,17 @@ class RedisLocust(User):
         self.key = 'key1'
         self.value = 'value1'
 
-    @task(2)
+    #get task - get one random key
+    @task(configs["get_int"])
     def get_time(self):
-        #for i in range(self.key_range):
-            i = randint(1, self.key_range-1)
-            self.key = 'key'+str(i)
-            self.client.query(self.key)
+        i = randint(1, self.key_range-1)
+        self.key = 'key'+str(i)
+        self.client.query(self.key)
 
-    @task(1)
+    #set task - set one random key
+    @task(configs["set_int"])
     def write(self):
-        #for i in range(self.key_range):
-            i = randint(1, self.key_range-1)
-            self.key = 'key'+str(i)
-            self.value = randStr(N=self.key_length)
-            self.client.write(self.key, self.value)
-
-#    @task(1)
-#    def get_key(self):
-#        var = str(randint(1, self.key_range-1))
-#        self.key = 'key'+var
-#        self.value = 'value'+var
+        i = randint(1, self.key_range-1)
+        self.key = 'key'+str(i)
+        self.value = randStr(N=self.key_length)
+        self.client.write(self.key, self.value)
