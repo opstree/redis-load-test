@@ -39,13 +39,28 @@ pip3 install -r requirments.txt
 
 ## Usage
 
-The use of this utility is not a fancy thing, just need to update the **[redis.json](./Scripts/redis.json)** with your redis connection details. Content of file should be like this:-
+The use of this utility is not a fancy thing, just need to update the **[redis.json](./Scripts/redis.json)** with your redis connection details. 
+Values key_length, key_range, error_timeout, get_int, set_int, expire_seconds - is used only for GET and SET simultaneously operation in Redis.
+key_length - how long is key - set as random string length n
+key_range - how many keys is stored in REDIS
+expire_seconds - how long key is stored in REDIS in seconds, if set to zero, then stored without time limit
+error_timeout - if response is above this limit then event is registred as error, if set to zero then error_timout is ignored
+get_int - set from 1 to 10 - how many get tasks is fired per user - to get proportion with set operations
+set_int - set from 1 to 10 - how many set tasks is fired per user - to get proportion with get operations
+
+Content of file should be like this:-
 
 ```json
 {
     "redis_host": "18.215.118.208",
     "redis_port": "6379",
-    "redis_password": ""
+    "redis_password": "",
+    "key_length": 1000,
+    "key_range": 1000,
+    "expire_seconds": 1200,
+    "error_timeout": 60000,
+    "get_int": 1,
+    "set_int": 1     
 }
 ```
 

@@ -1,5 +1,11 @@
 {
     "redis_host": "$REDIS_HOST",
     "redis_port": "$REDIS_PORT",
-    "redis_password": "$REDIS_PW"
+    "redis_password": "$REDIS_PW",
+    "key_length": 5000,
+    "key_range": 1000,
+    "expire_seconds": 900,
+    "error_timeout": 60000,
+    "get_int": 1,
+    "set_int": 1        
 }
