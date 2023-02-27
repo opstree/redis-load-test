@@ -12,6 +12,8 @@ import json
 import time
 from locust import User, events, TaskSet, task, constant
 import redis
+import string
+import random
 import gevent.monkey
 gevent.monkey.patch_all()
 
@@ -22,6 +24,8 @@ def load_config(filepath):
         configs = json.load(property_file)
     return configs
 
+def randStr(chars = string.ascii_uppercase + string.digits, N=10):
+    return ''.join(random.choice(chars) for _ in range(N))
 
 filename = "redis.json"
 
@@ -65,7 +69,7 @@ class RedisClient(object):
                 request_type=command, name=key, response_time=total_time, exception=e)
         else:
             total_time = int((time.time() - start_time) * 1000)
-            length = 1
+            length = len(value)
             events.request_success.fire(
                 request_type=command, name=key, response_time=total_time, response_length=length)
         return result
@@ -73,7 +77,8 @@ class RedisClient(object):
 
 class RedisLocust(User):
     wait_time = constant(0.1)
-    key_range = 500
+    key_range = configs["key_range"]
+    key_length = configs["key_length"]
 
     def __init__(self, *args, **kwargs):
         super(RedisLocust, self).__init__(*args, **kwargs)
@@ -83,19 +88,21 @@ class RedisLocust(User):
 
     @task(2)
     def get_time(self):
-        for i in range(self.key_range):
+        #for i in range(self.key_range):
+            i = randint(1, self.key_range-1)
             self.key = 'key'+str(i)
             self.client.query(self.key)
 
     @task(1)
     def write(self):
-        for i in range(self.key_range):
+        #for i in range(self.key_range):
+            i = randint(1, self.key_range-1)
             self.key = 'key'+str(i)
-            self.value = 'value'+str(i)
+            self.value = randStr(N=self.key_length)
             self.client.write(self.key, self.value)
 
-    @task(1)
-    def get_key(self):
-        var = str(randint(1, self.key_range-1))
-        self.key = 'key'+var
-        self.value = 'value'+var
+#    @task(1)
+#    def get_key(self):
+#        var = str(randint(1, self.key_range-1))
+#        self.key = 'key'+var
+#        self.value = 'value'+var
