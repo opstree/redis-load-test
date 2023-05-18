@@ -1,5 +1,6 @@
 {
     "redis_host": "$REDIS_HOST",
     "redis_port": "$REDIS_PORT",
-    "redis_password": "$REDIS_PW"
+    "redis_password": "$REDIS_PW",
+    "redis_key_count": "$REDIS_KEYS"
 }

@@ -42,12 +42,12 @@ class RedisClient(object):
                 result = ''
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
-            events.request_failure.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, exception=e)
         else:
             total_time = int((time.time() - start_time) * 1000)
             length = len(result)
-            events.request_success.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, response_length=length)
         return result
 
@@ -56,24 +56,24 @@ class RedisClient(object):
         result = None
         start_time = time.time()
         try:
-            result = self.rc.set(key, value)
+            result = self.rc.setex(key, 60 * 5, value)
             if not result:
                 result = ''
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
-            events.request_failure.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, exception=e)
         else:
             total_time = int((time.time() - start_time) * 1000)
             length = 1
-            events.request_success.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, response_length=length)
         return result
 
 
 class RedisLocust(User):
     wait_time = constant(0.1)
-    key_range = 500
+    key_range = int(configs["redis_key_count"])
 
     def __init__(self, *args, **kwargs):
         super(RedisLocust, self).__init__(*args, **kwargs)

@@ -1,6 +1,6 @@
 FROM python:3.7-slim-stretch
 RUN apt-get -y update && apt-get -y install build-essential
-RUN apt-get -y install gettext-base 
+RUN apt-get -y install gettext-base redis-tools
 RUN mkdir /redis-load-test
 COPY ./Scripts /redis-load-test/Scripts
 WORKDIR /redis-load-test/Scripts
