@@ -45,7 +45,8 @@ The use of this utility is not a fancy thing, just need to update the **[redis.j
 {
     "redis_host": "18.215.118.208",
     "redis_port": "6379",
-    "redis_password": ""
+    "redis_password": "",
+    "redis_key_count": "500"
 }
 ```
 
