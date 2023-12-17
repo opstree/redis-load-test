@@ -1,3 +1,3 @@
 locust
 argparse
-redis
+redis-py-cluster
