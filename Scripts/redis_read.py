@@ -9,9 +9,9 @@ Author:- OpsTree Solutions
 
 import json
 import time
-from locust import Locust, events
-from locust.core import TaskSet, task
-import redis
+from locust import User, events
+from locust import TaskSet, task
+from rediscluster import RedisCluster
 import gevent.monkey
 gevent.monkey.patch_all()
 
@@ -27,7 +27,8 @@ configs = load_config(filename)
 
 class RedisClient(object):
     def __init__(self, host=configs["redis_host"], port=configs["redis_port"]):
-        self.rc = redis.StrictRedis(host=host, port=port)
+        startup_nodes = [{"host": configs["redis_host"], "port": configs["redis_port"]}]
+        self.rc = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
         print(host, port)
 
     def query(self, key, command='GET'):
@@ -38,13 +39,13 @@ class RedisClient(object):
         total_time = int((time.time() - start_time) *1000000)
         if not result:
             result = ''
-            events.request_failure.fire(request_type=command, name=key, response_time=total_time, exception="Error")
+            events.request.fire(request_type=command, name=key, response_time=total_time, exception="Error")
         else:
             length = len(result)
-            events.request_success.fire(request_type=command, name=key, response_time=total_time, response_length=length)
+            events.request.fire(request_type=command, name=key, response_time=total_time, response_length=length)
         return result
 
-class RedisLocust(Locust):
+class RedisLocust(User):
     def __init__(self, *args, **kwargs):
         super(RedisLocust, self).__init__(*args, **kwargs)
         self.client = RedisClient()

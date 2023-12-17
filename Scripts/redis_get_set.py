@@ -11,7 +11,7 @@ from random import randint
 import json
 import time
 from locust import User, events, TaskSet, task, constant
-import redis
+from rediscluster import RedisCluster
 import gevent.monkey
 gevent.monkey.patch_all()
 
@@ -30,7 +30,8 @@ configs = load_config(filename)
 
 class RedisClient(object):
     def __init__(self, host=configs["redis_host"], port=configs["redis_port"], password=configs["redis_password"]):
-        self.rc = redis.StrictRedis(host=host, port=port, password=password)
+         startup_nodes = [{"host": configs["redis_host"], "port": configs["redis_port"]}]
+         self.rc = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 
     def query(self, key, command='GET'):
         """Function to Test GET operation on Redis"""
@@ -42,12 +43,12 @@ class RedisClient(object):
                 result = ''
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
-            events.request_failure.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, exception=e)
         else:
             total_time = int((time.time() - start_time) * 1000)
             length = len(result)
-            events.request_success.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, response_length=length)
         return result
 
@@ -61,12 +62,12 @@ class RedisClient(object):
                 result = ''
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
-            events.request_failure.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, exception=e)
         else:
             total_time = int((time.time() - start_time) * 1000)
             length = 1
-            events.request_success.fire(
+            events.request.fire(
                 request_type=command, name=key, response_time=total_time, response_length=length)
         return result
 
